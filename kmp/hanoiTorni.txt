@@ -1,0 +1,125 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include "hanoi.h"
+
+Stack* initStack(int cap);
+int pop(Stack* s);
+int push(Stack* s, int v);
+int top(Stack* s);
+void hanoi(int n, Stack* A, Stack* B, Stack* C);
+void freeStack(Stack* s);
+
+int main(){
+    int n;
+    printf("Input number of disks: \n");
+    scanf("%d", &n);
+    Stack* source = initStack(n);
+    Stack* storage = initStack(n-1);
+    Stack* dest = initStack(n);
+    for (int i = 0; i<n; i++) push(source, n-i);
+    clock_t start = clock();
+    hanoi(n, source, storage, dest);
+    clock_t end = clock();
+    double time = (double)(end-start)/CLOCKS_PER_SEC;
+    printf("Time executed: %.4f\n", time);
+    freeStack(source);
+    freeStack(storage);
+    freeStack(dest);
+}
+
+Stack* initStack(int cap){
+    Stack* s = (Stack*)malloc(sizeof(Stack));
+    if (!s){
+        printf("Memmory for stack not allocated!\n");
+        return NULL;
+    }
+    s->top = NULL;
+    s->capacity = cap;
+    s->disks = (Node**)malloc(cap * sizeof(Node*));
+    if (!s->disks){
+        printf("Memory not alloc'ed for array of Nodes");
+        return NULL;
+    }
+    for (int i = 0; i<cap; i++){
+        s->disks[i] = (Node*)malloc(sizeof(Node));
+        if (!s->disks[i]){
+            printf("Memory not alloc'ed for a Node");
+            return NULL;
+        }
+    }
+    s->top_index = -1;
+    return s;
+}
+
+int push(Stack* s, int el){
+    if (s->top && s->top->value < el){
+        printf("Don't try to put bigger ring atop a smaller one\n");
+        return -1;
+    }
+    if (s->top_index + 1 == s->capacity){
+        printf("Stack ist uberdrussiG! OVF\n");
+        return -1;
+    }
+    Node* node = s->disks[++s->top_index];
+    node->value = el;
+    node->next = s->top;
+    s->top = node;
+    return 0;
+}
+
+int top(Stack* s){
+    if (!s->top){
+        printf("Stack is empty!");
+        return -1;
+    }
+    else return s->top->value;
+}
+
+int pop(Stack* s){
+    if (!s->top){
+        printf("Stack is empty!");
+        return -1;
+    }
+    int val = s->top->value;
+    s->top = s->top->next;
+    s->top_index--;
+    return val;
+}
+
+void move(Stack* s1, Stack* s2, char from, char to){
+    if (s1->top){
+        if (top(s1) == -1) return; 
+        int val = pop(s1);
+        if (push(s2, val)==-1) return;
+        printf("Moving disk %d from tower %c to tower %c.\n", val, from, to);
+    }
+}
+
+void hanoi(int n, Stack* A, Stack* B, Stack* C){
+    if (n==0) return;
+      hanoi(n-1, A, C, B);
+      move(A, B, 'A', 'B');
+      hanoi(n-1, B, A, C);
+} 
+
+void freeStack(Stack* s){
+    free(s->disks);
+    s->disks = NULL;
+    free(s);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
